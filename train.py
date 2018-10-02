@@ -60,9 +60,9 @@ for i in range(num_graphs - num_train):
     test_sparse_features.append(sparse_to_tuple(sp.coo_matrix(np.expand_dims(np.transpose(test_features[i, :]), 1))))
 
 if FLAGS.model == 'gcn_cheby':
-    locality1 = 4
-    locality2 = 3
-    locality3 = 2
+    locality1 = 5
+    locality2 = 4
+    locality3 = 3
     locality = [locality1, locality2, locality3]  # locality sizes of different blocks
     num_supports = np.max(locality) + 1
     support = chebyshev_polynomials(adj, num_supports - 1)
@@ -95,8 +95,8 @@ with tf.Session() as sess:
         # print('Starting epoch {}'.format(epoch + 1))
         cnt = 0
         sum_loss = 0
-        train_acc_classes = np.zeros((num_classes, num_classes))
-        test_acc_classes = np.zeros((num_classes, num_classes))
+        train_acc_classes = np.zeros((num_classes, num_classes), dtype=np.int32)
+        test_acc_classes = np.zeros((num_classes, num_classes), dtype=np.int32)
         for i in range(num_train):
             train_feed_dict = construct_feed_dict(train_sparse_features[i], support, train_one_hot_labels[i],
                                                   train_graph_weights[i], placeholders)
@@ -134,7 +134,7 @@ with tf.Session() as sess:
     plt.show()
     print('Storing graph embedding')
     embedding_level = 4
-    with open('./embedding/graph_embedding9.csv', 'w') as csv_file:
+    with open('./embedding/graph_embedding11.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         header = ['id']
         for i in range(FLAGS.hidden3):
