@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import os
+import pandas as pd
 
 
 def load_adj(path):
@@ -42,6 +43,19 @@ def load_classes(path):
     one_hot_labels = np.zeros((num_graphs, num_classes))
     one_hot_labels[np.arange(num_graphs), labels] = 1
 
+    return labels, one_hot_labels, num_graphs, num_classes
+
+
+def load_classes2(path):
+    full_path = os.path.join(path, 'classes.csv')
+    classes = pd.read_csv(full_path)
+    classes.dropna(axis=0, inplace=True)
+    labels = classes['id'].values.astype(int)
+    num_classes = np.max(labels)
+    num_graphs = labels.shape[0]
+    labels -= np.ones(shape=(num_graphs,), dtype=int)
+    one_hot_labels = np.zeros((num_graphs, num_classes))
+    one_hot_labels[np.arange(num_graphs), labels] = 1
     return labels, one_hot_labels, num_graphs, num_classes
 
 
