@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 
 
-flags.DEFINE_string('model', 'gcn_cheby', 'Model string.') # gcn, gcn_cheby
+flags.DEFINE_string('model', 'inception', 'Model string.')  # gcn, gcn_cheby, inception
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 70, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 50, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 18, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 9, 'Number of units in hidden layer 3.')
@@ -16,9 +16,9 @@ flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.'
 flags.DEFINE_bool('featureless', False, 'featureless')
 
 
-base_path = './data/'
+base_path = './data4/'
 adj, num_nodes = load_adj(base_path)
-labels, one_hot_labels, num_graphs, num_classes = load_classes(base_path)
+labels, one_hot_labels, num_graphs, num_classes = load_classes2(base_path)
 class_dist = [labels.tolist().count(i) / num_graphs for i in range(num_classes)]
 
 print(class_dist)
@@ -60,11 +60,15 @@ for i in range(num_graphs - num_train):
     test_sparse_features.append(sparse_to_tuple(sp.coo_matrix(np.expand_dims(np.transpose(test_features[i, :]), 1))))
 
 if FLAGS.model == 'gcn_cheby':
-    locality1 = 5
-    locality2 = 4
-    locality3 = 3
+    locality1 = 8
+    locality2 = 7
+    locality3 = 6
     locality = [locality1, locality2, locality3]  # locality sizes of different blocks
     num_supports = np.max(locality) + 1
+    support = chebyshev_polynomials(adj, num_supports - 1)
+elif FLAGS.model == 'inception':
+    locality_sizes = [7, 5, 3]
+    num_supports = np.max(locality_sizes) + 1
     support = chebyshev_polynomials(adj, num_supports - 1)
 elif FLAGS.model == 'gcn':
     num_supports = 1
@@ -85,6 +89,9 @@ placeholders = {
 # model definition
 if FLAGS.model == 'gcn_cheby':
     model = CheybyGCN(placeholders, input_dim=1, num_class=num_classes, locality=locality)
+elif FLAGS.model == 'inception':
+    model = InceptionGCN(placeholders, input_dim=1, num_class=num_classes,
+                         locality_sizes=locality_sizes, is_pool=True)
 else:
     model = SimpleGCN(placeholders, input_dim=1, num_class=num_classes)
 
@@ -134,7 +141,7 @@ with tf.Session() as sess:
     plt.show()
     print('Storing graph embedding')
     embedding_level = 4
-    with open('./embedding/graph_embedding11.csv', 'w') as csv_file:
+    with open('./embedding/graph_embedding14.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         header = ['id']
         for i in range(FLAGS.hidden3):
@@ -156,5 +163,8 @@ with tf.Session() as sess:
     reduced_embedding = TSNE(n_components=2).fit_transform(embeddings)
     color_names = ['b', 'g', 'r', 'y']
     colors = [color_names[label] for label in labels]
-    plt.scatter(reduced_embedding[:, 0], reduced_embedding[:, 1], marker='.', c=colors)
+    num_samples = 5000
+    plt.scatter(reduced_embedding[:num_samples, 0], reduced_embedding[:num_samples, 1],
+                marker='.',
+                c=colors[:num_samples])
     plt.show()
