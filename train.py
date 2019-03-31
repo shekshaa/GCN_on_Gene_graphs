@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 
 flags.DEFINE_string('model', 'inception', 'Model string.')  # gcn, gcn_cheby, inception
 flags.DEFINE_float('learning_rate', 0.001, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 50, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 150, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 18, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 9, 'Number of units in hidden layer 3.')
@@ -35,14 +35,14 @@ train_idx = idx[:num_train]
 test_idx = idx[num_train:]
 
 # collecting train samples
-train_labels = labels[idx]
-train_one_hot_labels = one_hot_labels[idx]
-train_features = features[idx]
+train_labels = labels[train_idx]
+train_one_hot_labels = one_hot_labels[train_idx]
+train_features = features[train_idx]
 
 # collecting test samples
-test_labels = labels[idx]
-test_one_hot_labels = one_hot_labels[idx]
-test_features = features[idx]
+test_labels = labels[test_idx]
+test_one_hot_labels = one_hot_labels[test_idx]
+test_features = features[test_idx]
 
 train_sparse_features = []
 test_sparse_features = []
@@ -141,7 +141,7 @@ with tf.Session() as sess:
     plt.show()
     print('Storing graph embedding')
     embedding_level = 4
-    with open('./embedding/graph_embedding14.csv', 'w') as csv_file:
+    with open('./embedding/graph_embedding21.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
         header = ['id']
         for i in range(FLAGS.hidden3):
@@ -158,13 +158,13 @@ with tf.Session() as sess:
             writer.writerow(row)
             embeddings.append(embedding.tolist()[0])
 
-    print('Plotting t-SNE')
-    embeddings = np.asarray(embeddings)
-    reduced_embedding = TSNE(n_components=2).fit_transform(embeddings)
-    color_names = ['b', 'g', 'r', 'y']
-    colors = [color_names[label] for label in labels]
-    num_samples = 5000
-    plt.scatter(reduced_embedding[:num_samples, 0], reduced_embedding[:num_samples, 1],
-                marker='.',
-                c=colors[:num_samples])
-    plt.show()
+    # print('Plotting t-SNE')
+    # embeddings = np.asarray(embeddings)
+    # reduced_embedding = TSNE(n_components=2).fit_transform(embeddings)
+    # color_names = ['b', 'g', 'r', 'y']
+    # colors = [color_names[label] for label in labels]
+    # num_samples = 5000
+    # plt.scatter(reduced_embedding[:num_samples, 0], reduced_embedding[:num_samples, 1],
+    #             marker='.',
+    #             c=colors[:num_samples])
+    # plt.show()
