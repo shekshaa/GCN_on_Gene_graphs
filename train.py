@@ -16,13 +16,33 @@ flags.DEFINE_float('weight_decay', 0., 'Weight for L2 loss on embedding matrix.'
 flags.DEFINE_bool('featureless', False, 'featureless')
 
 
-base_path = './data4/'
+base_path = './data8/'
 adj, num_nodes = load_adj(base_path)
-labels, one_hot_labels, num_graphs, num_classes = load_classes2(base_path)
+labels, one_hot_labels, num_graphs, num_classes, nan_idx = load_classes2(base_path)
 class_dist = [labels.tolist().count(i) / num_graphs for i in range(num_classes)]
-
 print(class_dist)
 features = load_features(base_path, is_binary=False)
+features = features[~nan_idx]
+
+class_idx = np.asarray([i for i, l in enumerate(labels) if class_dist[l] >= 0.05])
+labels = labels[class_idx]
+one_hot_labels = one_hot_labels[class_idx]
+features = features[class_idx]
+num_classes -= np.sum(np.asarray(class_dist) < 0.05).astype(int)
+num_graphs = labels.shape[0]
+k = (one_hot_labels != 0).any(0)
+one_hot_labels = one_hot_labels[:, (one_hot_labels != 0).any(0)]
+labels = np.argmax(one_hot_labels, axis=1)
+new_class_dist = [labels.tolist().count(i) / num_graphs for i in range(num_classes)]
+print(new_class_dist)
+# sub_sample = np.arange(num_graphs)
+# np.random.shuffle(sub_sample)
+# num_sample = 5000
+# first_idx = sub_sample[:num_sample]
+# num_graphs = num_sample
+# labels = labels[first_idx]
+# one_hot_labels = one_hot_labels[first_idx]
+# features = features[first_idx]
 
 # num_train = num_graphs
 train_proportion = 0.7

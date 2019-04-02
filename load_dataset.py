@@ -49,6 +49,7 @@ def load_classes(path):
 def load_classes2(path):
     full_path = os.path.join(path, 'classes.csv')
     classes = pd.read_csv(full_path)
+    nans = pd.isna(classes['class']).values
     classes.dropna(axis=0, inplace=True)
     labels = classes['id'].values.astype(int)
     num_classes = np.max(labels)
@@ -56,7 +57,7 @@ def load_classes2(path):
     labels -= np.ones(shape=(num_graphs,), dtype=int)
     one_hot_labels = np.zeros((num_graphs, num_classes))
     one_hot_labels[np.arange(num_graphs), labels] = 1
-    return labels, one_hot_labels, num_graphs, num_classes
+    return labels, one_hot_labels, num_graphs, num_classes, nans
 
 
 def load_features(path, is_binary=False):
